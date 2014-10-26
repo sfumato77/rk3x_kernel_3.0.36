@@ -282,8 +282,8 @@ static int rockchip_pcm_hw_params(struct snd_pcm_substream *substream,
 	prtd->next = NULL;
 	prtd->end = NULL;
 	spin_unlock_irq(&prtd->lock);
-	printk(KERN_DEBUG "i2s dma info:periodsize(%ld),limit(%d),buffersize(%d),over(%d)\n",
-			prtd->dma_period,prtd->dma_limit,totbytes,totbytes-(prtd->dma_period*prtd->dma_limit));
+//mia	printk(KERN_DEBUG "i2s dma info:periodsize(%ld),limit(%d),buffersize(%d),over(%d)\n",
+//mia			prtd->dma_period,prtd->dma_limit,totbytes,totbytes-(prtd->dma_period*prtd->dma_limit));
 	return ret;
 }
 
