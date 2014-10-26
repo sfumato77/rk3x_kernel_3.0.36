@@ -2,6 +2,7 @@ Kernel for Mediacom SmartPad 101 S2 clone Explay Surfer 10.11
 
 Specs:
 
+- CPU: Rockchip RK3066 40nm Dual-core Cortex-A9, up to 1.6Ghz; Quad-core Mali 400 GPU,up to 400Mhz
 - Screen: HannStar Display model HSD101PWW1_A00
 - Touchcontroller: Goodix GT828
 - Wifi/BT: RK903 = module,based on BCM40183 Chipset, which main chip is the BCM4330
