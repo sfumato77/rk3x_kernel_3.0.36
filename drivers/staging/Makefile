@@ -45,6 +45,7 @@ obj-$(CONFIG_IIO)		+= iio/
 obj-$(CONFIG_CS5535_GPIO)	+= cs5535_gpio/
 #obj-$(CONFIG_VIVANTE)		+= rk29/vivante/
 obj-y            		+= rk29/ipp/
+obj-$(CONFIG_ZSMALLOC)		+= zsmalloc/
 obj-$(CONFIG_ZRAM)		+= zram/
 obj-$(CONFIG_XVMALLOC)		+= zram/
 obj-$(CONFIG_ZCACHE)		+= zcache/
