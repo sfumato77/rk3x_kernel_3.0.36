@@ -1,0 +1,1 @@
+./mkbootimage/mkbootimg --kernel ./arch/arm/boot/zImage --ramdisk ./mkbootimage/fakeramdisk.gz -o sdcard_Boot__Linux.img
