@@ -127,6 +127,7 @@ deps_config := \
 	drivers/staging/wlags49_h2/Kconfig \
 	drivers/staging/zcache/Kconfig \
 	drivers/staging/zram/Kconfig \
+	drivers/staging/zsmalloc/Kconfig \
 	drivers/staging/rk29/ipp/Kconfig \
 	drivers/staging/cs5535_gpio/Kconfig \
 	drivers/staging/iio/trigger/Kconfig \

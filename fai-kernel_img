@@ -1,3 +1,0 @@
-rm kernel.img
-./mkkrnlimg ./arch/arm/boot/Image  kernel.img
- 
