@@ -11,7 +11,55 @@
 #include <plat/board.h>
 #include <mach/sram.h>
 #include <linux/i2c-gpio.h>
+/* adc battery */
+struct rk30_adc_battery_platform_data {
+        int (*io_init)(void);
+        int (*io_deinit)(void);
 
+        int dc_det_pin;
+        int batt_low_pin;
+        int charge_ok_pin;
+        int charge_set_pin;
+        int charge_led_pin;
+
+//        int adc_channel;
+
+        int dc_det_level;
+        int batt_low_level;
+        int charge_ok_level;
+        int charge_set_level;
+        int charge_led_level;
+};
+
+#if defined (CONFIG_TOUCHSCREEN_FT5306) || defined (CONFIG_TOUCHSCREEN_FT5406)
+struct ft5x0x_platform_data{
+	u16     model;
+	int	max_x;
+	int	max_y;
+	int	key_min_x;
+	int	key_min_y;
+	int	xy_swap;
+	int	x_revert;
+	int	y_revert;
+	int     (*get_pendown_state)(void);
+	int     (*init_platform_hw)(void);
+	int     (*ft5x0x_platform_sleep)(void);
+	int     (*ft5x0x_platform_wakeup)(void);  
+	void    (*exit_platform_hw)(void);
+
+};
+#endif
+
+#if defined (CONFIG_TOUCHSCREEN_FT5306_WPX2)
+struct ft5x0x_platform_data{
+          u16     model;
+    int     (*get_pendown_state)(void);
+    int     (*init_platform_hw)(void);
+    int     (*ft5x0x_platform_sleep)(void);
+    int     (*ft5x0x_platform_wakeup)(void);
+    void    (*exit_platform_hw)(void);
+};
+#endif
 
 void __init rk30_map_common_io(void);
 void __init rk30_init_irq(void);
@@ -19,6 +67,11 @@ void __init rk30_map_io(void);
 struct machine_desc;
 void __init rk30_fixup(struct machine_desc *desc, struct tag *tags, char **cmdline, struct meminfo *mi);
 void __init rk30_clock_data_init(unsigned long gpll,unsigned long cpll,u32 flags);
+void __init board_clock_init(void);
+void board_gpio_suspend(void);
+void board_gpio_resume(void);
+void __sramfunc board_pmu_suspend(void);
+void __sramfunc board_pmu_resume(void);
 
 #ifdef CONFIG_RK30_PWM_REGULATOR
 void  rk30_pwm_suspend_voltage_set(void);
@@ -90,10 +143,22 @@ enum _codec_pll {
 #else 
 #define codec_pll_default codec_pll_1200mhz
 #define periph_pll_default periph_pll_297mhz
-#endif
 
 #endif
 
 #endif
+#endif
+void wise_charge_on(void);
+void wise_charge_off(void);
+
+void rk30_lcd_disp_power_off(void);
+void rk30_lcd_disp_power_on(void);
+int rk30_lcd_disp_power_init(void);
+int rk30_lcd_disp_power_deinit(void);
+
+int backlight_power_init(void);
+void backlight_power_on(void);
+void backlight_power_off(void);
+void backlight_power_deinit(void);
 
 #endif
