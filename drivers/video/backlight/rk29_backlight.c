@@ -184,7 +184,7 @@ static int rk29_bl_update_status(struct backlight_device *bl)
 	if (suspend_flag && (bl->props.state & BL_CORE_DRIVER2))
 	    goto out;
 
-	brightness = bl->props.brightness;
+	brightness = 256 - bl->props.brightness;
 
 	if(brightness)
 	{
