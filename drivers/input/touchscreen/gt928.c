@@ -154,7 +154,7 @@ s32 gtp_i2c_read(struct i2c_client *client, u8 *buf, s32 len)
     msgs[1].addr  = client->addr;
     msgs[1].len   = len - GTP_ADDR_LENGTH;
     msgs[1].buf   = &buf[GTP_ADDR_LENGTH];
-    //msgs[1].scl_rate = 300 * 1000;
+    msgs[1].scl_rate = 300 * 1000;
 
     while(retries < 5)
     {
@@ -2427,7 +2427,7 @@ s32 gtp_i2c_read_no_rst(struct i2c_client *client, u8 *buf, s32 len)
     msgs[1].addr  = client->addr;
     msgs[1].len   = len - GTP_ADDR_LENGTH;
     msgs[1].buf   = &buf[GTP_ADDR_LENGTH];
-    //msgs[1].scl_rate = 300 * 1000;
+    msgs[1].scl_rate = 300 * 1000;
 
     while(retries < 5)
     {
