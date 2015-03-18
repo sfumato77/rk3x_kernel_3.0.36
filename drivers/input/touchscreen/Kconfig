@@ -156,6 +156,14 @@ config TOUCHSCREEN_GT813_827_828
           code includes that in its table of IIC devices.
 	  If unsure, say N.
 
+config TOUCHSCREEN_GT928
+        tristate "Goodix touch screen gt928 support for rockchip based $
+        help
+          Say Y here if you have a touchscreen interface using the
+          two goodix gt928, and your board-specific initialization
+          code includes that in its table of IIC devices.
+          If unsure, say N.
+
 config TOUCHSCREEN_CT36X
 	tristate "CT36X based touchscreens"
 
