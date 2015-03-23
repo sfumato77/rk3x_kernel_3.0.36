@@ -1920,6 +1920,12 @@ static struct i2c_board_info __initdata i2c2_info[] = {
         .addr           = 0x5d,
     },
 #endif
+#if defined (CONFIG_TOUCHSCREEN_GT928)
+    {
+        .type           = "GT928",
+        .addr           = 0x5d,
+    },
+#endif
 #if defined (CONFIG_TOUCHSCREEN_GT811)
 	{
 		.type          = "GT811-TS",

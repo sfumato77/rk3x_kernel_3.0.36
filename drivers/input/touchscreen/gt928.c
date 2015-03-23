@@ -48,8 +48,8 @@
     #include <linux/input/mt.h>
 #endif
 
-//static const char *goodix_ts_name = "Goodix Capacitive TouchScreen";
-static const char *goodix_ts_name = "ft5x0x_ts";
+static const char *goodix_ts_name = "Goodix Capacitive TouchScreen";
+//static const char *goodix_ts_name = "ft5x0x_ts";
 
 static struct workqueue_struct *goodix_wq;
 struct i2c_client * i2c_connect_client = NULL; 
