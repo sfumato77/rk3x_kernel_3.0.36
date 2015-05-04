@@ -1722,11 +1722,12 @@ int rk_sensor_register(void)
         
         if (new_camera[i].orientation == INVALID_VALUE) {
             if (strstr(new_camera[i].dev_name,"back")) {
-                new_camera[i].orientation = 90;
+                new_camera[i].orientation = 0;//KitKat set 90  Lollipop 0
             } else {
-                new_camera[i].orientation = 270;
+                new_camera[i].orientation = 0;//KitKat set 270 Lollipop 0
             }
         }
+
 
         new_camera[i].dev.link_info.power = rk_sensor_power;
         new_camera[i].dev.link_info.powerdown = rk_sensor_powerdown; 
