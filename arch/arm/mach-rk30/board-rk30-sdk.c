@@ -1440,9 +1440,10 @@ static struct rk30_adc_battery_platform_data rk30_adc_battery_platdata = {
 //        .batt_low_pin    = INVALID_GPIO,   //non si spegna mai????
         .charge_set_pin  = INVALID_GPIO,
         .charge_ok_pin   = RK30_PIN6_PA6,
+	.charge_led_pin  = RK30_PIN0_PC7,
         .dc_det_level    = GPIO_LOW,
         .charge_ok_level = GPIO_HIGH,
-	.charge_led_level = GPIO_LOW,
+	.charge_led_level = GPIO_HIGH,
 	.batt_low_level  = GPIO_LOW,
 };
 
