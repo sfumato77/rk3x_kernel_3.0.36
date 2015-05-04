@@ -268,6 +268,26 @@ static void rk30_adc_battery_charge_disable(struct rk30_adc_battery_data *bat)
 	}
 }
 
+static int rk30_adc_set_charge_led_status(struct rk30_adc_battery_data *bat,int value)
+{
+	struct rk30_adc_battery_platform_data *pdata = bat->pdata;
+	
+	if(value) //led turn red
+	{
+		gpio_direction_output(pdata->charge_led_pin,pdata->charge_led_level);
+		gpio_set_value(pdata->charge_led_pin,pdata->charge_led_level);
+		//gpio_direction_output(pdata->charge_led_pin,!(pdata->charge_led_level));
+		//gpio_set_value(pdata->charge_led_pin,!(pdata->charge_led_level));	
+	}
+	else   //led turn green
+	{
+		gpio_direction_output(pdata->charge_led_pin,!(pdata->charge_led_level));
+		gpio_set_value(pdata->charge_led_pin,!(pdata->charge_led_level));	
+		//gpio_direction_output(pdata->charge_led_pin,pdata->charge_led_level);
+		//gpio_set_value(pdata->charge_led_pin,pdata->charge_led_level);	
+	}
+}
+
 //extern int suspend_flag;
 static int rk30_adc_battery_get_charge_level(struct rk30_adc_battery_data *bat)
 {
@@ -461,18 +481,24 @@ static void rk30_adc_battery_voltage_samples(struct rk30_adc_battery_data *bat)
 	}
 
 }
+static bool b_to_change_adc_table = true;
 static int rk30_adc_battery_voltage_to_capacity(struct rk30_adc_battery_data *bat, int BatVoltage)
 {
 	int i = 0;
 	int capacity = 0;
-
+	struct rk30_adc_battery_platform_data *pdata = bat->pdata;
 	struct batt_vol_cal *p;
+	int current_real_voltage;
+
 	p = batt_table;
 
-	if (rk30_adc_battery_get_charge_level(bat)){  //charge
+
+
+//*****/sotto originale
+/*	if (rk30_adc_battery_get_charge_level(bat)){  //charge
 		if(BatVoltage >= (p[BATT_NUM - 1].charge_vol)){
 			capacity = 99;
-		}	
+		}
 		else{
 			if(BatVoltage <= (p[0].charge_vol)){
 				capacity = 0;
@@ -511,6 +537,106 @@ static int rk30_adc_battery_voltage_to_capacity(struct rk30_adc_battery_data *ba
 
 	}
     return capacity;
+*/
+
+//printk("zpp->traced->F:%s,L:%d: ajust adc_battery_table when charge p[BATT_NUM - 1].charge_vol=%d\n",__FUNCTION__,__LINE__,current_real_voltage);
+	
+#define CHARGE_LED_CONDITION  (4120)
+#define AD_DIFFERENCE_DC_IN_OUT_HIGH               (100)
+	if (rk30_adc_battery_get_charge_level(bat))	//charge ok and ajust the adc_battery_table it is very valueable.
+	{  
+		if( (BatVoltage  >= CHARGE_LED_CONDITION))// && b_to_change_adc_table )
+		{
+			if (pdata->charge_ok_pin != INVALID_GPIO){
+				if (gpio_get_value(pdata->charge_ok_pin) == pdata->charge_ok_level){
+					p[BATT_NUM - 1].charge_vol = BatVoltage-60 ; //����Ҫ��ȥ60������AD���� "��Ʈ"
+					p[BATT_NUM - 1].dis_charge_vol = BatVoltage - 60 - AD_DIFFERENCE_DC_IN_OUT_HIGH;
+					p[BATT_NUM - 1].disp_cal = 100;		
+					//printk("zpp->traced-> ajust adc_battery_table when charge BatVoltage=%d current_real_voltage=%d\n",BatVoltage,current_real_voltage);
+				}
+			}
+		}
+		
+		if(BatVoltage >= (p[BATT_NUM - 1].charge_vol))
+		{
+			if (pdata->charge_ok_pin != INVALID_GPIO){
+				if (gpio_get_value(pdata->charge_ok_pin) == pdata->charge_ok_level){
+					capacity = 100;
+					rk30_adc_set_charge_led_status(bat,0);//green
+					b_to_change_adc_table = false;
+					//printk("zpp->traced->F:%s,L:%d: true capacity=%d green\n",__FUNCTION__,__LINE__,capacity);
+				}
+				else
+				{
+					capacity = 99;
+					rk30_adc_set_charge_led_status(bat,1);//red
+					//printk("zpp->traced->F:%s,L:%d: true capacity=%d  red\n",__FUNCTION__,__LINE__,capacity);
+				}
+			}
+			else
+			{
+				capacity = 100;
+				rk30_adc_set_charge_led_status(bat,0);//green
+			}		
+			
+		}	
+		else
+		{
+			rk30_adc_set_charge_led_status(bat,1);//red
+			if(BatVoltage <= (p[0].charge_vol))
+			{
+				capacity = 0;
+			}
+			else
+			{
+				for(i = 0; i < BATT_NUM - 1; i++)
+				{
+					if(((p[i].charge_vol) <= BatVoltage) && (BatVoltage < (p[i+1].charge_vol)))
+					{
+						capacity = p[i].disp_cal + ((BatVoltage - p[i].charge_vol) * (p[i+1].disp_cal - p[i].disp_cal)) / (p[i+1].charge_vol - p[i].charge_vol);
+						break;
+					}
+				}
+			} 
+			//printk("zpp->traced->F:%s,L:%d: true capacity=%d\n",__FUNCTION__,__LINE__,capacity);			 
+		}
+	}
+	else	//discharge
+	{
+		rk30_adc_set_charge_led_status(bat,0);//green and default low
+		b_to_change_adc_table = true;
+		if(BatVoltage >= (p[BATT_NUM - 1].dis_charge_vol))
+		{
+			capacity = 100;
+		}	
+		else
+		{
+			if(BatVoltage <= (p[0].dis_charge_vol))
+			{
+				capacity = 0;
+			}
+			else
+			{
+				for(i = 0; i < BATT_NUM - 1; i++)
+				{
+					if(((p[i].dis_charge_vol) <= BatVoltage) && (BatVoltage < (p[i+1].dis_charge_vol)))
+					{
+						capacity = p[i].disp_cal + ((BatVoltage - p[i].dis_charge_vol) * (p[i+1].disp_cal - p[i].disp_cal)) / (p[i+1].dis_charge_vol - p[i].dis_charge_vol);
+						break;
+					}
+				}
+			}  
+
+		}
+	}
+
+//mia	if( ++DeBUG_CountD > DEBUG_MAX_COUNTS_NUMBER){
+//mia		DeBUG_CountD=0;
+//mia		DBG("zpp->traced->F:%s,L:%d:BatVoltage=%d true capacity=%d\n",__FUNCTION__,__LINE__,BatVoltage,capacity);
+//mia	}
+	
+    return capacity;
+
     }
 
 
@@ -806,6 +932,7 @@ static void rk30_adc_battery_dcdet_delaywork(struct work_struct *work)
 	irq_flag = gpio_get_value (pdata->dc_det_pin) ? IRQF_TRIGGER_FALLING : IRQF_TRIGGER_RISING;
 
 	rk28_send_wakeup_key(); // wake up the system
+	rk30_adc_set_charge_led_status(gBatteryData,1);//red
 
 	free_irq(irq, NULL);
 	ret = request_irq(irq, rk30_adc_battery_dc_wakeup, irq_flag, "ac_charge_irq", NULL);// reinitialize the DC irq 
@@ -1119,6 +1246,20 @@ static int rk30_adc_battery_io_init(struct rk30_adc_battery_platform_data *pdata
 	    		printk("failed to set gpio batt_low_pin input\n");
 	    		goto error;
 	    	}
+	 	gpio_direction_output(pdata->charge_led_pin,!(pdata->charge_led_level));
+	    	gpio_set_value(pdata->charge_led_pin,!(pdata->charge_led_level));
+	}
+
+	//charge led pin
+	if( pdata->charge_led_pin != INVALID_GPIO){
+		ret = gpio_request(pdata->charge_led_pin, NULL);
+		if (ret) {
+			 printk("failed to request charge_led_pin gpio\n");
+			goto error;
+		}
+		
+		gpio_direction_output(pdata->charge_led_pin,!(pdata->charge_led_level));
+		gpio_set_value(pdata->charge_led_pin,!(pdata->charge_led_level));
 	}
     
 	return 0;

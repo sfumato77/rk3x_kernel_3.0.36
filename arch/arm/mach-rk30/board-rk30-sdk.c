@@ -47,6 +47,13 @@
 
 #include <linux/mc3230.h>
 
+#if 0
+#define DBG(x...) printk(KERN_INFO x)
+#else
+#define DBG(x...) do { } while (0)
+#endif
+
+
 #if defined (CONFIG_ENCRYPTION_DEVICE) || defined (CONFIG_ENCRYPTION_DEVICE_MODULE)
 #include "../../../drivers/input/netupdate/at18.h"
 #endif
@@ -301,9 +308,52 @@ static struct spi_board_info board_spi_devices[] = {
 #define PWM_GPIO         RK30_PIN0_PD6
 #define PWM_EFFECT_VALUE  0
 
+
+#if defined(CONFIG_LCD_SC_971S) || defined(CONFIG_LCD_SC_101S) || defined(CONFIG_LCD_SC_N91) || defined(CONFIG_LCD_SC_S12)
+#define WISE_CHARGE_EN_PIN         RK30_PIN4_PD7
+#else
+#define WISE_CHARGE_EN_PIN         RK30_PIN4_PD3
+#endif
+#define WISE_CHARGE_ENABLE		    GPIO_HIGH
+
+//mia
+
+static int wise_charge_init(void)
+{
+	int ret = 0;
+	DBG("zpp-->traced:%s-%s-->%d\n",__FILE__,__FUNCTION__,__LINE__);
+	ret = gpio_request(WISE_CHARGE_EN_PIN, NULL);
+	if (ret != 0) {
+		gpio_free(WISE_CHARGE_EN_PIN);
+	}	
+	gpio_direction_output(WISE_CHARGE_EN_PIN, !WISE_CHARGE_ENABLE);
+	gpio_set_value(WISE_CHARGE_EN_PIN, !WISE_CHARGE_ENABLE);
+	return ret;	
+}
+
+void wise_charge_on(void)
+{
+	DBG("zpp-->traced:%s-%s-->%d\n",__FILE__,__FUNCTION__,__LINE__);
+	gpio_direction_output(WISE_CHARGE_EN_PIN, !WISE_CHARGE_ENABLE);
+	gpio_set_value(WISE_CHARGE_EN_PIN, !WISE_CHARGE_ENABLE);
+}
+void wise_charge_off(void)
+{
+	DBG("zpp-->traced:%s-%s-->%d\n",__FILE__,__FUNCTION__,__LINE__);
+	gpio_direction_output(WISE_CHARGE_EN_PIN, WISE_CHARGE_ENABLE);
+	gpio_set_value(WISE_CHARGE_EN_PIN, WISE_CHARGE_ENABLE);
+}
+static void wise_charge_deinit(void)
+{
+	DBG("zpp-->traced:%s-%s-->%d\n",__FILE__,__FUNCTION__,__LINE__);
+	gpio_free(WISE_CHARGE_EN_PIN);
+}
+
+
 #define LCD_DISP_ON_PIN
 
 #ifdef  LCD_DISP_ON_PIN
+
 //#define BL_EN_MUX_NAME    GPIOF34_UART3_SEL_NAME
 //#define BL_EN_MUX_MODE    IOMUXB_GPIO1_B34
 
@@ -1392,6 +1442,8 @@ static struct rk30_adc_battery_platform_data rk30_adc_battery_platdata = {
         .charge_ok_pin   = RK30_PIN6_PA6,
         .dc_det_level    = GPIO_LOW,
         .charge_ok_level = GPIO_HIGH,
+	.charge_led_level = GPIO_LOW,
+	.batt_low_level  = GPIO_LOW,
 };
 
 static struct platform_device rk30_device_adc_battery = {
@@ -2022,6 +2074,8 @@ static void __init rk30_i2c_register_board_info(void)
 //end of i2c
 
 #define POWER_ON_PIN RK30_PIN6_PB0   //power_hold
+#define CHARGE_LED_PIN RK30_PIN0_PC7
+#define CHARGE_DC_DET_PIN RK30_PIN6_PA5
 static void rk30_pm_power_off(void)
 {
 	printk(KERN_ERR "rk30_pm_power_off start...\n");
@@ -2046,16 +2100,37 @@ static void rk30_pm_power_off(void)
 static void __init machine_rk30_board_init(void)
 {
 	avs_init();
-	gpio_request(POWER_ON_PIN, "poweronpin");
-	gpio_direction_output(POWER_ON_PIN, GPIO_HIGH);
+//      gpio_request(POWER_ON_PIN, "poweronpin");
+//	gpio_direction_output(POWER_ON_PIN, GPIO_HIGH);
 
 //put down the ATX8 CS pin
 //#if !defined (CONFIG_ENCRYPTION_DEVICE) &&  ! defined (CONFIG_ENCRYPTION_DEVICE_MODULE)
-    gpio_request(ATX8_RST_PIN, "ATX8_RST_PIN");
-    gpio_set_value(ATX8_RST_PIN, GPIO_LOW);
-    gpio_direction_output(ATX8_RST_PIN, GPIO_LOW);
-    gpio_free(ATX8_RST_PIN);
+//    gpio_request(ATX8_RST_PIN, "ATX8_RST_PIN");
+//    gpio_set_value(ATX8_RST_PIN, GPIO_LOW);
+//    gpio_direction_output(ATX8_RST_PIN, GPIO_LOW);
+//    gpio_free(ATX8_RST_PIN);
 //#endif
+
+gpio_pull_updown(POWER_ON_PIN, 1);
+
+	gpio_direction_output(POWER_ON_PIN, GPIO_HIGH);
+	gpio_set_value(POWER_ON_PIN,GPIO_HIGH);
+	//control the charge led default high avoid some excception
+	if(gpio_request(CHARGE_DC_DET_PIN,NULL) == 0)
+	{
+		gpio_pull_updown(CHARGE_DC_DET_PIN, GPIOPullUp);//important
+		if(gpio_direction_input(CHARGE_DC_DET_PIN) == 0)
+		{
+			if (gpio_get_value (CHARGE_DC_DET_PIN) == GPIO_LOW)
+			{
+				gpio_request(CHARGE_LED_PIN,NULL);
+				gpio_direction_output(CHARGE_LED_PIN, GPIO_HIGH);
+				gpio_set_value(CHARGE_LED_PIN,GPIO_HIGH);
+				gpio_free(CHARGE_LED_PIN);	
+			}
+		}	
+	}
+	gpio_free(CHARGE_DC_DET_PIN);	
 	
 	pm_power_off = rk30_pm_power_off;
 	

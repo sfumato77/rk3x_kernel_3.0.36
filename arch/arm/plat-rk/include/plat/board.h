@@ -321,6 +321,9 @@ struct rk30_adc_battery_platform_data {
 	int  *property_tabel;
 	int *board_batt_table;
 
+	int charge_led_pin;
+	int charge_led_level;
+
 };
 
 #ifndef _LINUX_WLAN_PLAT_H_
