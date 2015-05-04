@@ -1246,8 +1246,6 @@ static int rk30_adc_battery_io_init(struct rk30_adc_battery_platform_data *pdata
 	    		printk("failed to set gpio batt_low_pin input\n");
 	    		goto error;
 	    	}
-	 	gpio_direction_output(pdata->charge_led_pin,!(pdata->charge_led_level));
-	    	gpio_set_value(pdata->charge_led_pin,!(pdata->charge_led_level));
 	}
 
 	//charge led pin
