@@ -27,7 +27,7 @@
 #include <asm/io.h>
 #include <mach/board.h>
 #include <plat/pwm.h>
-
+#include <mach/gpio.h>
 #define PWM_DIV              PWM_DIV2
 #define PWM_APB_PRE_DIV      20000
 #define BL_STEP              (255)
@@ -304,6 +304,9 @@ static void rk29_bl_suspend(struct early_suspend *h)
 		rk29_bl->props.brightness = brightness;
 	}
 
+	//LCD_OFF PIN_363 0
+         gpio_direction_output(363,1);
+         gpio_set_value(363,0);
 }
 
 static void rk29_bl_resume(struct early_suspend *h)
@@ -313,6 +316,10 @@ static void rk29_bl_resume(struct early_suspend *h)
 	rk29_bl->props.state &= ~BL_CORE_DRIVER2;
 	
 	schedule_delayed_work(&rk29_backlight_work, msecs_to_jiffies(rk29_bl_info->delay_ms));
+
+	//LCD_ON PIN_363 1
+         gpio_direction_output(363,1); 
+         gpio_set_value(363,1);
 }
 
 static struct early_suspend bl_early_suspend = {
