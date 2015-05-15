@@ -892,7 +892,8 @@ static int rk30_adc_battery_get_present(struct rk30_adc_battery_data *bat)
 
 static int rk30_adc_battery_get_voltage(struct rk30_adc_battery_data *bat)
 {
-	return (bat->bat_voltage );
+	return (bat->bat_voltage *1000);
+	printk("umberto i voltaggi sono %d",bat->bat_voltage *1000); //mia
 }
 
 static int rk30_adc_battery_get_capacity(struct rk30_adc_battery_data *bat)
